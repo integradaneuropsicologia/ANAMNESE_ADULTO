@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Anamnese – Versão Adulta</title>
+<style>
+  :root{--bg:#0f172a;--card:#111827;--line:#1f2937;--text:#e5e7eb;--muted:#94a3b8;--pri:#4f46e5;--ok:#22c55e;--err:#ef4444}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto}
+  .wrap{max-width:1000px;margin:24px auto;padding:0 16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+  h1{margin:0 0 6px;font-size:1.35rem}
+  .muted{color:var(--muted)}
+  .grid-info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 6px}
+  @media(max-width:720px){.grid-info{grid-template-columns:1fr}}
+  .info{background:#0b1220;border:1px solid var(--line);border-radius:10px;padding:10px}
+  .info b{display:block;margin-bottom:4px;color:#cbd5e1}
+
+  .q{border:1px solid var(--line);border-radius:12px;padding:12px;background:#0b1220;margin-bottom:10px}
+  .q h3{margin:0 0 8px;font-size:1rem}
+  textarea{width:100%;min-height:80px;resize:vertical;border-radius:10px;border:1px solid var(--line);background:#0a0f1c;color:var(--text);padding:10px}
+  .hint{font-size:.9rem;color:#9fb2cc;margin-bottom:8px}
+  .opts{display:flex;flex-wrap:wrap;gap:10px}
+  label.opt{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer}
+  .opt input[type="radio"]{accent-color:var(--pri)}
+  label.opt:has(input[type="radio"]:checked){ background:var(--pri); border-color:var(--pri); color:#fff; }
+  label.opt:has(input[type="radio"]:checked) span{ color:#fff; font-weight:600; }
+
+  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--pri);border:none;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer}
+  .btn.ok{background:var(--ok)}
+  .btn:disabled{opacity:.6;cursor:not-allowed}
+  .msg{margin:10px 0;padding:10px;border-radius:8px}
+  .okbox{background:#052e1a;border:1px solid #114d2a;color:#b3f7c1}
+  .errbox{background:#3b0d0d;border:1px solid #5b1919;color:#ffd0d0}
+  .warnbox{background:#3a2903;border:1px solid #5c4307;color:#ffe6b0}
+  .legend{background:#0b1220;border:1px dashed var(--line);border-radius:10px;padding:10px;margin:6px 0 12px}
+  /* já existe para radio; adicione também para checkbox */
+  label.opt:has(input[type="checkbox"]:checked){
+  background:var(--pri); border-color:var(--pri); color:#fff;
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>Anamnese – Versão Adulta</h1>
+    <p class="muted">Para respostas relevantes, descreva <b>exemplo recente, quando, quem viu e impacto</b>. Responda com o máximo de detalhes possível.</p>
+
+    <!-- Dados do paciente (por token) -->
+    <div id="pacInfo" class="grid-info" style="display:none;"></div>
+
+    <form id="form" style="margin-top:14px; display:none;">
+      <div id="qs"></div>
+
+      <div class="legend muted">Dica: escreva livremente; o rascunho é salvo automaticamente neste dispositivo.</div>
+
+      <div style="margin-top:14px;display:flex;gap:8px;align-items:center">
+        <button id="btnSubmit" class="btn ok" type="submit">Enviar anamnese</button>
+        <div id="progress" class="muted"></div>
+      </div>
+      <div id="msg" class="msg" style="display:none"></div>
+    </form>
+
+    <div id="alert" class="msg" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+// ======== CONFIG ========
+const SHEETDB_BASE = "https://sheetdb.io/api/v1/8pmdh33s9fvy8";
+const SHEETS = { PATIENTS:"Patients", TOKENS:"LinkTokens", SCORES:"Scores_ANAMNESE_ADULTO" };
+const CODE = "ANAMNESE_ADULTO";
+const PORTAL_URL = "https://integradaneuropsicologia.github.io/formularios/";
+
+// ======== HELPERS ========
+const $ = s => document.querySelector(s);
+const onlyDigits = s => (s||"").replace(/\D+/g,"");
+const qs = k => new URLSearchParams(location.search).get(k) || "";
+const AUTOSAVE_KEY = `${CODE}_${qs("token")||"no_token"}`;
+
+function setBox(id, text, kind="ok"){ const el=$(id); if(!el) return;
+  el.textContent=text; el.className="msg "+(kind==="ok"?"okbox":kind==="warn"?"warnbox":"errbox"); el.style.display="block";
+}
+function hideBox(id){ const el=$(id); if(el){ el.style.display="none"; el.textContent=""; } }
+function maskCPF(cpf){ const d=onlyDigits(cpf||""); if(d.length!==11) return cpf||""; return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9)}`; }
+function fmtDateISO(iso){ if(!iso) return ""; const [y,m,d]=iso.split("-"); return (y&&m&&d)?`${d}/${m}/${y}`:iso; }
+async function GET(url){ const r=await fetch(url); if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }
+async function POST(url, body){ const r=await fetch(url,{method:"POST",headers:{ "Content-Type":"application/json" },body:JSON.stringify(body)}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+async function PATCH(url, body){ const r=await fetch(url,{method:"PATCH",headers:{ "Content-Type":"application/json" },body:JSON.stringify(body)}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+async function sheetSearch(sheet, params){ const usp=new URLSearchParams(params); return GET(`${SHEETDB_BASE}/search?sheet=${encodeURIComponent(sheet)}&${usp.toString()}`); }
+async function sheetCreate(sheet, row){ return POST(`${SHEETDB_BASE}?sheet=${encodeURIComponent(sheet)}`, { data:[row] }); }
+async function sheetPatchBy(sheet, column, value, data){ return PATCH(`${SHEETDB_BASE}/${encodeURIComponent(column)}/${encodeURIComponent(value)}?sheet=${encodeURIComponent(sheet)}`, { data }); }
+function goPortalWithToken(){ const TOKEN=qs("token"); try{ const u=new URL(PORTAL_URL,location.href); u.searchParams.set("token",TOKEN); location.href=u.toString(); }catch(_){ const sep=PORTAL_URL.includes("?")?"&":"?"; location.href=PORTAL_URL+sep+"token="+encodeURIComponent(TOKEN); }}
+
+// ======== PERGUNTAS ========
+// Escalas padrão
+const FREQ5   = ["Nunca","Raramente","Às vezes","Frequentemente","Quase sempre"];
+const SEVER4  = ["Não","Leve","Moderada","Grave"];
+const YESNO   = ["Sim","Não"];
+const YNP     = ["Sim","Não","Não sei"];
+
+// Perguntas
+const QUESTIONS = [
+  // ——— CONTEXTO ———
+  { type: "checkbox", section: "Contexto", text: "Quais contextos são impactados pela sua demanda?", options: ["Casa","Trabalho","Escola/Faculdade","Social","Outros"] },
+  { type: "checkbox", section: "Contexto", text: "Quem solicitou o laudo?", options: [
+    "Banca de concurso","Conselho Tutelar","Delegacia","Demanda espontânea",
+    "Demanda dos familiares","Defensoria Pública","Escola","Equipe jurídica",
+    "Fisioterapeuta","Fonoaudióloga","Médica sexóloga","Médico clínico geral",
+    "Endocrinologia","Geriatria","Genética","Neurologia","Neurocirurgia",
+    "Neuropediatria","Pediatria","Psiquiatria","Ministério Público",
+    "Musicoterapia","Prefeitura","Psicomotricista","Psicopedagogia",
+    "Psicoterapia","Terapia Ocupacional","Tribunal de Justiça",
+    "Vara da Infância e Juventude"
+  ]},
+  { type: "checkbox", section: "Contexto", text: "Finalidade do laudo", options: [
+    "Avaliação longitudinal","Avaliação multidisciplinar",
+    "Pré-cirúrgica / autorização cirúrgica",
+    "Avaliação psicológica (carcerária / judicial)",
+    "CNH (avaliação psicológica)","Porte/arma de fogo",
+    "Avaliação psicossocial","Perfil neuropsicológico",
+    "Diagnóstico diferencial","Encaminhamentos escolares",
+    "Encaminhamentos terapêuticos","Perícia psicológica",
+    "Ingresso em concurso público"
+  ]},
+  { type: "checkbox", section: "Contexto", text: "Motivo da avaliação", options: [
+    "TCE (traumatismo craniano)","Dificuldades escolares/profissionais e comportamento",
+    "Condição neurológica (ex.: cisto aracnoide, polimicrogiria, ventriculomegalia)",
+    "Epilepsia com queixa cognitiva","Uso de álcool com queixa cognitiva",
+    "Queixas cognitivas no idoso","Tumor cerebral com queixa cognitiva",
+    "Craniofaringioma","Problemas de atenção e memória no adulto",
+    "Problemas de interação e comunicação social","Suspeita de alienação parental"
+  ]},
+
+  // ——— SINAIS (GERAL) ———
+  { type: "checkbox", section: "Sinais (geral)", text: "Agitação (não fica quieto)", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Agressividade verbal (gritos/xingamentos)", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Agressividade física (empurrar/bater/lançar objetos)", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Oscilação de humor no mesmo dia", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Ansiedade (preocupação, tensão, inquieto)", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Crises de pânico (início súbito, sintomas físicos)", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Apatia / perda de interesse", options: FREQ5 },
+
+  { type: "checkbox", section: "Sinais (geral)", text: "Habilidades acima da média (linguagem, matemática, aprendizagem, outras)", options: ["Não","Sim — linguagem","Sim — matemática","Sim — aprendizagem","Sim — outras áreas"] },
+
+  { type: "checkbox", section: "Sinais (geral)", text: "Desempenho no trabalho/estudos abaixo do esperado (mantido no tempo)", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Acumula objetos / dificuldade de descartar", options: FREQ5 },
+
+  { type: "checkbox", section: "Sinais (geral)", text: "Comportamento alimentar de risco", options: [
+    "Nenhum","Restrição/medo de engordar (anorexia)","Compulsão + compensação (bulimia)","Compulsão sem compensação"
+  ]},
+
+  { type: "checkbox", section: "Sinais (geral)", text: "Roubo/furto (casa, trabalho, lojas)", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Opositor/desafiador com autoridade", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Disruptivo (quebra regras do ambiente)", options: FREQ5 },
+
+  { type: "checkbox", section: "Sinais (geral)", text: "Comportamentos repetitivos/estereotipias", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Compras em excesso com perda de controle", options: FREQ5 },
+
+  { type: "checkbox", section: "Sinais (geral)", text: "Sensibilidade incomum a estímulos", options: [
+    "Som","Luz","Toque/tecidos","Cheiros","Texturas/alimentos","Hipo-reativo à dor","Sem alterações"
+  ]},
+
+  { type: "checkbox", section: "Sinais (geral)", text: "Baixa tolerância à frustração", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Choro difícil de controlar", options: FREQ5 },
+
+  { type: "checkbox", section: "Sinais (geral)", text: "Mentiras repetidas com prejuízo social", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Condutas delituosas (vandalismo/infrações)", options: FREQ5 },
+
+  { type: "checkbox", section: "Sinais (geral)", text: "Conflitos com família/colegas/chefia", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Culpa em excesso por coisas pequenas", options: FREQ5 },
+
+  { type: "checkbox", section: "Sinais (geral)", text: "Dependência de outros (decisões/tarefas/emocional)", options: ["Não","Sim — decisões","Sim — tarefas","Sim — emocional"] },
+  { type: "checkbox", section: "Sinais (geral)", text: "Humor deprimido / anedonia", options: FREQ5 },
+
+  { type: "checkbox", section: "Sinais (geral)", text: "Desatenção no dia a dia (≥2 contextos)", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Desorganização de materiais, prazos e rotinas", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Dificuldade para se adaptar a mudanças", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Age sem pensar (controle inibitório baixo)", options: FREQ5 },
+
+  { type: "checkbox", section: "Sinais (geral)", text: "Coordenação motora frágil", options: SEVER4 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Criticidade/inflexibilidade em opiniões", options: FREQ5 },
+
+  { type: "checkbox", section: "Sinais (geral)", text: "Delírios (ideias falsas fixas)", options: ["Não","Perseguição","Grandeza","Ciúme","Culpa","Referência","Outras"] },
+  { type: "checkbox", section: "Sinais (geral)", text: "Desobediência a regras combinadas", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Desregulação emocional (explode/dificulta acalmar)", options: FREQ5 },
+
+  { type: "checkbox", section: "Sinais (geral)", text: "Dificuldade nas relações (conversa, amizades)", options: SEVER4 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Dificuldade para seguir passos/regras em sequência", options: SEVER4 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Dificuldade para decidir (trava na escolha)", options: FREQ5 },
+
+  // ——— SONO ———
+  { type: "checkbox", section: "Sono", text: "Dificuldade para acordar no horário", options: FREQ5 },
+  { type: "checkbox", section: "Sono", text: "Dificuldade para adormecer/manter o sono", options: FREQ5 },
+  { type: "checkbox", section: "Sono", text: "Sono não reparador (acorda cansado)", options: FREQ5 },
+
+  // ——— OUTROS SINAIS ———
+  { type: "checkbox", section: "Sinais (geral)", text: "Falar sozinho em público/em excesso", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Ingenuidade (cai fácil em golpes/enganos)", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Dificuldades motoras que limitam tarefas", options: SEVER4 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Falta de planejamento para tarefas em etapas", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Hiperfoco (fica horas no mesmo interesse)", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Indisciplina em ambientes com regras", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Inquietação (levanta, mexe mãos/pés)", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Insatisfação com a imagem corporal", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Irritabilidade (pavio curto)", options: FREQ5 },
+
+  { type: "checkbox", section: "Sinais (geral)", text: "Mania de limpeza (rituais, muito tempo nisso)", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Mania de organização rígida", options: FREQ5 },
+
+  { type: "checkbox", section: "Sinais (geral)", text: "Mutismo (não fala em certos contextos)", options: FREQ5 },
+  { type: "checkbox", section: "Sinais (geral)", text: "Pensamento acelerado (difícil desacelerar)", options: FREQ5 },
+
+  { type: "checkbox", section: "Percepção", text: "Alucinações (ouvir/ver/cheiros/tátil)", options: ["Nunca","Auditivas","Visuais","Olfativas","Táteis"] },
+  { type: "checkbox", section: "Percepção", text: "Perda de audição (relato/exame)", options: YNP },
+  { type: "checkbox", section: "Percepção", text: "Perda de visão (relato/exame)", options: YNP },
+  { type: "checkbox", section: "Clínico", text: "Sinais de disautonomia (tontura/síncope/intolerância ortostática)", options: YNP },
+
+  { type: "checkbox", section: "Proteção", text: "Situações de violência/abuso", options: ["Nenhuma","Abuso sexual","Abuso verbal/psicológico","Bullying","Alienação parental","Outros"] },
+
+  // ——— APRENDIZAGEM/ESTUDOS (se aplicável) ———
+  { type: "checkbox", section: "Aprendizagem", text: "Leitura — dificuldades atuais", options: ["Não","Decodificação (trocas)","Fluência (lento/perde linha)","Compreensão (não entende/infere)","Outras dificuldades"] },
+  { type: "checkbox", section: "Aprendizagem", text: "Escrita — dificuldades atuais", options: ["Não","Ortografia (trocas/omissões)","Texto (coesão/coerência)","Velocidade/legibilidade","Outras dificuldades"] },
+  { type: "checkbox", section: "Aprendizagem", text: "Matemática — dificuldades atuais", options: ["Não","Fatos (tabuada)","Cálculo (com/sem suporte)","Problemas (texto/interpretação)","Outras dificuldades"] },
+
+  // ——— TRIAGENS ———
+  // DI
+  { type: "checkbox", section: "Triagem — DI", text: "Dificuldade para aprender/raciocinar/planejar", options: YNP },
+  { type: "checkbox", section: "Triagem — DI", text: "Entende e usa ideias abstratas (tempo, dinheiro, regras sociais)", options: ["Sim","Parcialmente","Não","Não sei"] },
+  { type: "checkbox", section: "Triagem — DI", text: "Precisa de ajuda nas atividades do dia a dia", options: ["Não","Ajuda às vezes","Ajuda frequente","Ajuda o tempo todo","Não sei"] },
+  { type: "checkbox", section: "Triagem — DI", text: "Adapta-se bem em casa/trabalho/vida social", options: ["Sim","Parcialmente","Não","Não sei"] },
+  { type: "checkbox", section: "Triagem — DI", text: "As dificuldades de aprendizagem começaram na infância", options: YNP },
+
+  // Pragmática
+  { type: "checkbox", section: "Triagem — Pragmática", text: "Ajusta a fala conforme a situação (amigo x chefe/professor)", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — Pragmática", text: "Mantém conversas (turnos, manter assunto, não sair do contexto)", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — Pragmática", text: "Entende piadas, ironias e duplo sentido", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — Pragmática", text: "As dificuldades atrapalham vida social/estudo/trabalho", options: YNP },
+
+  // TEA
+  { type: "checkbox", section: "Triagem — TEA", text: "Dificuldade em contato social (olhar, iniciar/responder interações)", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TEA", text: "Comunicação verbal/não verbal diferente ou limitada", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TEA", text: "Interesses restritos/comportamentos repetitivos", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TEA", text: "Rotinas rígidas / sofre com mudanças", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TEA", text: "Reações incomuns a sons/luzes/texturas/cheiros", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TEA", text: "Sinais presentes desde a infância", options: YNP },
+  { type: "checkbox", section: "Triagem — TEA", text: "Conjunto dos sintomas causa prejuízo importante", options: YNP },
+
+  // TDAH — Desatenção
+  { type: "checkbox", section: "Triagem — TDAH (Desatenção)", text: "Erros por descuido / não presta atenção em detalhes", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TDAH (Desatenção)", text: "Dificuldade para manter a atenção em tarefas/atividades", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TDAH (Desatenção)", text: "Parece não escutar quando falam diretamente", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TDAH (Desatenção)", text: "Não segue instruções / deixa tarefas inacabadas", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TDAH (Desatenção)", text: "Dificuldade para organizar tarefas, materiais e rotina", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TDAH (Desatenção)", text: "Evita tarefas longas que exigem esforço mental", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TDAH (Desatenção)", text: "Perde coisas com frequência (chaves, material, celular)", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TDAH (Desatenção)", text: "Distrai-se fácil com estímulos externos/pensamentos", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TDAH (Desatenção)", text: "Esquece compromissos/tarefas do dia a dia", options: FREQ5 },
+
+  // TDAH — Hiperatividade/Impulsividade
+  { type: "checkbox", section: "Triagem — TDAH (Hiper/Impulso)", text: "Mexer mãos/pés / remexer na cadeira", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TDAH (Hiper/Impulso)", text: "Levanta quando deveria ficar sentado", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TDAH (Hiper/Impulso)", text: "Inquietação intensa (ou correr/subir em lugares inadequados)", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TDAH (Hiper/Impulso)", text: "Dificuldade para participar de forma calma", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TDAH (Hiper/Impulso)", text: "Parece estar “a mil” / “ligado no 220”", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TDAH (Hiper/Impulso)", text: "Fala em excesso", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TDAH (Hiper/Impulso)", text: "Responde antes da pergunta terminar / interrompe", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TDAH (Hiper/Impulso)", text: "Dificuldade para esperar a vez", options: FREQ5 },
+  { type: "checkbox", section: "Triagem — TDAH (Hiper/Impulso)", text: "Intromete-se nas atividades/conversas dos outros", options: FREQ5 },
+
+  // ——— TELAS & SUBSTÂNCIAS ———
+  { type: "checkbox", section: "Uso de telas & substâncias", text: "Uso excessivo de telas (prejudica sono/estudo/convivência)", options: FREQ5 },
+  { type: "checkbox", section: "Uso de telas & substâncias", text: "Uso de substâncias com prejuízo", options: ["Não","Álcool","Cannabis","Estimulantes","Sedativos/ansiolíticos","Outras"] },
+];
+const N = QUESTIONS.length;
+
+// ======== RENDER ========
+function renderQuestions(){
+  const host = $("#qs"); host.innerHTML="";
+
+  QUESTIONS.forEach((q, idx)=>{
+    const n = idx+1;
+    const qn = String(n).padStart(2,"0");
+    const wrap = document.createElement("div");
+    wrap.className = "q";
+
+    if (typeof q === "string") {
+      // textarea (como antes)
+      wrap.innerHTML = `
+        <h3 id="lbl${qn}">${n}. ${q}</h3>
+        <textarea name="q${qn}" id="q${qn}" placeholder="Escreva aqui..."></textarea>
+      `;
+    } else if (q.type === "checkbox") {
+      // grupo de checkboxes
+      const opts = q.options || [];
+      let html = `<h3 id="lbl${qn}">${n}. ${q.text}</h3><div class="opts">`;
+      opts.forEach((opt, i)=>{
+        const id = `q${qn}_${i}`;
+        html += `
+          <label class="opt">
+            <input type="checkbox" name="q${qn}" id="${id}" value="${opt}">
+            <span>${opt}</span>
+          </label>`;
+      });
+      html += `</div>`;
+      wrap.innerHTML = html;
+    }
+    host.appendChild(wrap);
+  });
+
+  // autosize + progresso
+  host.addEventListener("input", e=>{
+    if(e.target.tagName==="TEXTAREA"){
+      e.target.style.height="auto";
+      e.target.style.height=(e.target.scrollHeight+2)+"px";
+    }
+    updateProg(); autosaveAnswers();
+  });
+  host.addEventListener("change", ()=>{ updateProg(); autosaveAnswers(); });
+
+  updateProg();
+}
+
+function updateProg(){
+  let filled = 0;
+  QUESTIONS.forEach((q, idx)=>{
+    const qn = `q${String(idx+1).padStart(2,"0")}`;
+    if (typeof q === "string") {
+      const el = $("#"+qn);
+      if(el && el.value.trim()) filled++;
+    } else if (q.type === "checkbox") {
+      const any = document.querySelectorAll(`input[name="${qn}"]:checked`).length > 0;
+      if(any) filled++;
+    }
+  });
+  $("#progress").textContent = `${filled}/${N} respondidas`;
+}
+
+
+// ======== AUTOSAVE ========
+function autosaveAnswers(){
+  const answers = {}, qaPairs = [];
+let answeredCount = 0;
+
+QUESTIONS.forEach((q, idx)=>{
+  const n = idx+1;
+  const qn = `q${String(n).padStart(2,"0")}`;
+  const label = QUESTIONS[idx].text || QUESTIONS[idx]; // string ou objeto
+
+  if (typeof q === "string") {
+    const el = $("#"+qn);
+    const val = (el?.value||"").trim();
+    answers[qn] = val;
+    if(val) answeredCount++;
+    qaPairs.push(`${n}. ${label}: ${val ? val.replace(/\s+/g," ").trim() : "(sem resposta)"}`);
+  } else if (q.type === "checkbox") {
+    const vals = Array.from(document.querySelectorAll(`input[name="${qn}"]:checked`)).map(el=>el.value);
+    answers[qn] = vals; // array
+    if(vals.length) answeredCount++;
+    qaPairs.push(`${n}. ${label}: ${vals.length ? vals.join(", ") : "(nenhuma opção marcada)"}`);
+  }
+});
+
+const categoria = qaPairs.join(" | "); // <- vai completo pra sua coluna "categoria"
+
+  localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ code: CODE, token: qs("token"), answers }));
+}
+
+function restoreAutosave(){
+  try{
+    const raw = localStorage.getItem(AUTOSAVE_KEY); if(!raw) return;
+    const {answers} = JSON.parse(raw)||{}; if(!answers) return;
+
+    Object.entries(answers).forEach(([key,val])=>{
+      if(Array.isArray(val)){
+        // checkbox
+        val.forEach(v=>{
+          const el = document.querySelector(`input[name="${key}"][value="${v}"]`);
+          if(el) el.checked = true;
+        });
+      }else{
+        // textarea
+        const el = $("#"+key);
+        if(el){ el.value = val; el.style.height="auto"; el.style.height=(el.scrollHeight+2)+"px"; }
+      }
+    });
+    updateProg();
+  }catch(_){}
+}
+
+function clearAutosave(){ localStorage.removeItem(AUTOSAVE_KEY); }
+
+// ======== ESTADO ========
+let patient=null, tokenRow=null, CPF="";
+let startAt = Date.now();
+
+// ======== BOOT POR TOKEN ========
+(async function boot(){
+  try{
+    const TOKEN=qs("token");
+    if(!TOKEN){ setBox("#alert","Link inválido (sem token). Solicite um novo link.","err"); return; }
+
+    const trows=await sheetSearch(SHEETS.TOKENS,{ token:TOKEN });
+    if(!trows?.length) throw new Error("Token inválido ou expirado.");
+    tokenRow=trows[0];
+    const disabled=String(tokenRow.disabled||"não").toLowerCase()==="sim";
+    const expired = tokenRow.expires_at && (Date.parse(tokenRow.expires_at) < Date.now());
+    if(disabled || expired) throw new Error("Token desativado/expirado. Peça um novo link.");
+
+    CPF=onlyDigits(tokenRow.cpf||""); if(!CPF) throw new Error("Token sem CPF vinculado.");
+
+    const prows=await sheetSearch(SHEETS.PATIENTS,{ cpf:CPF });
+    if(!prows?.length) throw new Error("Paciente não encontrado.");
+    patient=prows[0];
+
+    const allowed=String(patient[CODE]||"").toLowerCase()==="sim";
+    if(!allowed){ setBox("#alert","Este formulário não está liberado para você. Entre em contato com o consultório.","err"); return; }
+
+    const flagDone=String(patient[`${CODE}_FEITO`]||"").toLowerCase()==="sim";
+    const already=await sheetSearch(SHEETS.SCORES,{ cpf:CPF, code:CODE });
+    if(flagDone || (already && already.length)){
+      setBox("#alert","Você já respondeu este formulário. Voltando ao portal…","ok");
+      setTimeout(goPortalWithToken,1200); return;
+    }
+
+    renderPatientInfo();
+    renderQuestions();
+    $("#pacInfo").style.display="grid";
+    $("#form").style.display="block";
+    hideBox("#alert");
+    startAt=Date.now();
+    restoreAutosave();
+
+  }catch(err){
+    console.error(err);
+    setBox("#alert", err.message || "Falha ao abrir o formulário. Tente novamente mais tarde.", "err");
+  }
+})();
+
+function renderPatientInfo(){
+  const g=$("#pacInfo"); g.innerHTML="";
+  const info=[["Nome",patient.nome||"-"],["CPF",maskCPF(patient.cpf)],["Nascimento",fmtDateISO(patient.data_nascimento)],["E-mail",patient.email||"-"],["WhatsApp",patient.whatsapp||"-"]];
+  for(const [k,v] of info){
+    const d=document.createElement("div"); d.className="info";
+    d.innerHTML=`<b>${k}</b><div>${v||"-"}</div>`;
+    g.appendChild(d);
+  }
+}
+
+// ======== SUBMIT ========
+let sending=false;
+$("#form").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  if(sending) return; sending=true; hideBox("#msg");
+  const btn=$("#btnSubmit"); const originalText=btn.textContent; btn.disabled=true; btn.textContent="Enviando…";
+
+  try{
+    if(!patient) throw new Error("Sessão inválida. Recarregue o link.");
+
+    // Coleta
+    const answers={}, qaPairs=[];
+    let answeredCount=0;
+    for(let i=1;i<=N;i++){
+      const qn=`q${String(i).padStart(2,"0")}`;
+      const el=$("#"+qn);
+      const val=(el?.value||"").trim();
+      answers[i]=val;
+      if(val){ answeredCount++; }
+      // Monta par Pergunta: Resposta (limpando quebras)
+      const cleanVal = val.replace(/\s+/g," ").trim();
+      qaPairs.push(`${i}. ${QUESTIONS[i-1]}: ${cleanVal||"(sem resposta)"}`);
+    }
+
+    // Anti-duplicidade
+    const again=await sheetSearch(SHEETS.SCORES,{ cpf:CPF, code:CODE });
+    if(again && again.length){
+      setBox("#msg","Este formulário já foi enviado anteriormente. Voltando ao portal…","ok");
+      setTimeout(goPortalWithToken,1000); return;
+    }
+
+    // Monta categoria (string única)
+    const categoria = qaPairs.join(" | ");
+    const durationSec = Math.round((Date.now()-startAt)/1000);
+
+    const row = {
+      result_id:`${patient.cpf}_${CODE}_${Date.now()}`,
+      token:qs("token"),
+      cpf:patient.cpf,
+      code:CODE,
+      source:"paciente",
+      submitted_at:new Date().toISOString(),
+      total: answeredCount,            // qtd de respostas preenchidas
+      categoria,                       // todas as perguntas + respostas
+      metrics: JSON.stringify({ questions: QUESTIONS, answers, answeredCount, duration_sec: durationSec })
+    };
+    await sheetCreate(SHEETS.SCORES,row);
+
+    await sheetPatchBy(SHEETS.PATIENTS,"cpf",patient.cpf,{ [`${CODE}_FEITO`]:"sim", [`${CODE}_FEITO_AT`]:new Date().toISOString() });
+
+    clearAutosave();
+    setBox("#msg","Anamnese enviada. Retornando ao portal…","ok");
+    setTimeout(goPortalWithToken, 1300);
+
+  }catch(err){
+    console.error(err);
+    setBox("#msg", err.message || "Falha ao enviar. Tente novamente.", "err");
+    sending=false; btn.disabled=false; btn.textContent=originalText;
+  }
+});
+</script>
+</body>
+</html>
