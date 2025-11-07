@@ -46,7 +46,7 @@
 <div class="wrap">
   <div class="card">
     <h1>Anamnese – Versão Adulta</h1>
-    <p class="muted">Para respostas relevantes, descreva <b>exemplo recente, quando, quem viu e impacto</b>. Responda com o máximo de detalhes possível.</p>
+  
 
     <!-- Dados do paciente (por token) -->
     <div id="pacInfo" class="grid-info" style="display:none;"></div>
@@ -96,34 +96,28 @@ function goPortalWithToken(){ const TOKEN=qs("token"); try{ const u=new URL(PORT
 
 // ======== PERGUNTAS ========
 // Escalas padrão
-const FREQ5   = ["Nunca","Raramente","Às vezes","Frequentemente","Quase sempre"];
-const SEVER4  = ["Não","Leve","Moderada","Grave"];
-const YESNO   = ["Sim","Não"];
-const YNP     = ["Sim","Não","Não sei"];
+const FREQ5   = ["Nunca","Raramente","Às vezes","Frequentemente","Quase sempre", "Nãi sei/Não se aplica"];
+const SEVER4  = ["Não","Leve","Moderada","Grave", "Nãi sei/Não se aplica"];
+const YESNO   = ["Sim","Não", "Nãi sei/Não se aplica"];
+const YNP     = ["Sim","Não", "Nãi sei/Não se aplica"];
 
 // Perguntas
 const QUESTIONS = [
   // ——— CONTEXTO ———
+
+  { type: "checkbox", section: "Contexto", text: "Justificativa dessa avaliação", options: ["Abuso sexual infantil", "Atraso cognitivo na prematuridade", "Problemas de comunicação e interação social", "Queixa cognitiva na epilepsia ", "Queixas cognitivas no idoso", "Dificuldades escolares e problemas de comportamento", "problemas de atenção e memória da vida adulta", "Queixa cognitiva relacionada com o uso de álcool"] },
+
+  { type: "checkbox", section: "Contexto", text: "Quais sintomas você observa. Marque quantos forem necessários.", options: ["Agitação", "Agressividade física", "Agressividade verbal", "Alteração de humor", "Alterações fonarticulatórias", "Alto rendimento acadêmico", "Alucinação", "Andar na ponta dos pés", "Ansiedade", "Apatia", "Atraso no desenvolvimento da linguagem", "Atraso no desenvolvimento motor", "Atraso nos marcos do desenvolvimento", "Aumento da sensibilidade a estímulos", "Autor de bullying", "Baixa tolerância à frustração", "Baixo desempenho escolar", "Choro excessivo", "Comportamento de acumulação", "Comportamento de anorexia", "Comportamento de bulimia", "Comportamento de mentir", "Comportamento de roubo", "Comportamento delinquente", "Comportamento desafiador", "Comportamento disruptivo", "Comportamento infantilizado", "Comportamento opositor", "Comportamento repetitivo", "Comportamento sedutor", "Compras excessivas", "Compulsão alimentar", "Conflito Interpessoal", "Coordenação motora frágil", "Crises de pânico", "Criticidade aguçada", "Culpabilização", "Delírios", "Dependência", "Dependência na relação emocional", "Depressão", "Desatenção", "Desinteresse escolar", "Desobediência", "Desorganização", "Desregulação emocional", "Dificuldade de adaptação", "Dificuldade de compreensão de texto", "Dificuldade de controle inibitório", "Dificuldade de interação social", "Dificuldade na alfabetização", "Dificuldade para seguir regras", "Dificuldade para tomada de decisão", "Dificuldades motoras", "Dificuldades para acordar", "Dificuldades para adormecer", "Diminuída sensibilidade a estímulos", "Disautonomia", "Ecolalia", "Enurese diurna", "Enurese noturna", "Esteriotipias", "Facilidade na aprendizagem", "Fala infantilizada", "Fala sozinho", "Falta de planejamento", "Flapping", "Hiperfoco", "Impulsividade", "Indisciplina", "Ingenuidade", "Inquietação", "Insatisfação com a imagem corporal", "Intercorrências no sono", "Irritabilidade", "Juízo crítico comprometido", "Limitações motoras", "Luto", "Mania de limpeza", "Mania de organização", "Mutismo", "Não sabe brincar", "Pensamento acelerado", "Perda capacidade visual", "Perda da capacidade auditiva", "Pouco contato visual", "Problemas de aprendizagem de escrita", "Problemas de aprendizagem de leitura", "Problemas de aprendizagem de matemática", "Problemas de memória", "Problemas de raciocínio", "Problemas na compreensão da leitura", "Procrastinação", "Recusa alimentar", "Repetência escolar", "Rigidez de comportamento", "Rigidez de pensamento", "Seletividade alimentar", "Sono improdutivo", "Teimosia", "Tiques", "Uso abusivo de substâncias psicoativas", "Uso excessivo de telas", "Vítima de abuso sexual", "Vítima de abuso verbal", "Vítima de alienação parental", "Vítima de bullying"
+] },
+
   { type: "checkbox", section: "Contexto", text: "Quais contextos são impactados pela sua demanda?", options: ["Casa","Trabalho","Escola/Faculdade","Social","Outros"] },
-  { type: "checkbox", section: "Contexto", text: "Quem solicitou o laudo?", options: [
-    "Banca de concurso","Conselho Tutelar","Delegacia","Demanda espontânea",
-    "Demanda dos familiares","Defensoria Pública","Escola","Equipe jurídica",
-    "Fisioterapeuta","Fonoaudióloga","Médica sexóloga","Médico clínico geral",
-    "Endocrinologia","Geriatria","Genética","Neurologia","Neurocirurgia",
-    "Neuropediatria","Pediatria","Psiquiatria","Ministério Público",
-    "Musicoterapia","Prefeitura","Psicomotricista","Psicopedagogia",
-    "Psicoterapia","Terapia Ocupacional","Tribunal de Justiça",
-    "Vara da Infância e Juventude"
+  
+  { type: "checkbox", section: "Contexto", text: "Solicitantes do laudo?", options: ["Banca de concurso", "Conselho Tutelar", "Defensoria Pública", "Delegacia", "Demanda espontânea", "Demanda espontânea dos familiares", "Equipe Jurídica", "Escola", "Fisioterapeuta", "Fonoaudióloga", "Médica Sexóloga", "Médico Clínico Geral", "Médico Endocrinologista", "Médico Geneticista", "Médico Geriatra", "Médico Neurocirurgião", "Médico Neurologista", "Médico Neuropediatra", "Médico Pediatra", "Médico Psiquiatra", "Ministério Público", "Musicoterapeuta", "Prefeitura", "Psicomotricista", "Psicopedagoga", "Psicoterapeuta", "Terapeuta Ocupacional", "Tribunal de Justiça", "Vara da Infância e da Juventude"
+
   ]},
   { type: "checkbox", section: "Contexto", text: "Finalidade do laudo", options: [
-    "Avaliação longitudinal","Avaliação multidisciplinar",
-    "Pré-cirúrgica / autorização cirúrgica",
-    "Avaliação psicológica (carcerária / judicial)",
-    "CNH (avaliação psicológica)","Porte/arma de fogo",
-    "Avaliação psicossocial","Perfil neuropsicológico",
-    "Diagnóstico diferencial","Encaminhamentos escolares",
-    "Encaminhamentos terapêuticos","Perícia psicológica",
-    "Ingresso em concurso público"
+    "Avaliação longitudinal", "Avaliação Multidisciplinar", "Avaliação para autorização cirúrgica", "Avaliação pré-cirúrgica", "Avaliação psicológica no contexto carcerário para atender demandas judiciais", "Avaliação psicológica para candidatos à obtenção de Carteira Nacional de Habilitação", "Avaliação psicológica para manuseio de arma de fogo", "Avaliação Psicossocial", "Delineamento de perfil neuropsicológico", "Diagnóstico diferencial", "Direcionamento de condutas escolares", "Direcionamento de condutas terapêuticas", "Perícia psicológica", "Validação de estado psicológico para ingresso em concurso público"
+
   ]},
   { type: "checkbox", section: "Contexto", text: "Motivo da avaliação", options: [
     "TCE (traumatismo craniano)","Dificuldades escolares/profissionais e comportamento",
@@ -133,6 +127,12 @@ const QUESTIONS = [
     "Craniofaringioma","Problemas de atenção e memória no adulto",
     "Problemas de interação e comunicação social","Suspeita de alienação parental"
   ]},
+  {type: "checkbox", section: "Contexto", text: "Lateralidade", options: ["Destro", "Canhoto", "Ambidestro"]},
+  {type: "checkbox", section: "Contexto", text: "Estado civil", options: ["Solteiro(a)", "Casado(a)", "União estável", "Divorciado(a)", "Separado(a)", "Viúvo(a)", "Namorando", "Relacionamento aberto", "Outro"
+]},
+{type: "checkbox", section: "Contexto", text: "Escolaridade", options: ["Educação infantil", "Ensino fundamental incompleto", "Ensino fundamental completo", "Ensino médio incompleto", "Ensino médio completo", "Ensino técnico incompleto", "Ensino técnico completo", "Ensino superior incompleto", "Ensino superior completo", "Pós-graduação", "Mestrado", "Doutorado", "Pós-doutorado"
+]},
+ {type: "checkbox", section: "Contexto", text: "Tipo de escola", options: ["Pública", "Particular"]},
 
   // ——— SINAIS (GERAL) ———
   { type: "checkbox", section: "Sinais (geral)", text: "Agitação (não fica quieto)", options: FREQ5 },
@@ -459,29 +459,38 @@ $("#form").addEventListener("submit", async (e)=>{
   try{
     if(!patient) throw new Error("Sessão inválida. Recarregue o link.");
 
-    // Coleta
-    const answers={}, qaPairs=[];
-    let answeredCount=0;
-    for(let i=1;i<=N;i++){
-      const qn=`q${String(i).padStart(2,"0")}`;
-      const el=$("#"+qn);
-      const val=(el?.value||"").trim();
-      answers[i]=val;
-      if(val){ answeredCount++; }
-      // Monta par Pergunta: Resposta (limpando quebras)
-      const cleanVal = val.replace(/\s+/g," ").trim();
-      qaPairs.push(`${i}. ${QUESTIONS[i-1]}: ${cleanVal||"(sem resposta)"}`);
-    }
+    const answers = {};
+    const qaPairs = [];
+    let answeredCount = 0;
 
-    // Anti-duplicidade
+    QUESTIONS.forEach((q, idx)=>{
+      const n = idx + 1;
+      const qn = `q${String(n).padStart(2,"0")}`;
+      const label = q.text || q; // pode ser string ou objeto
+
+      if (typeof q === "string") {
+        const el = $("#"+qn);
+        const val = (el?.value || "").trim();
+        answers[qn] = val;
+        if(val) answeredCount++;
+        qaPairs.push(`${n}. ${label}: ${val || "(sem resposta)"}`);
+      } else if (q.type === "checkbox") {
+        const vals = Array.from(document.querySelectorAll(`input[name="${qn}"]:checked`)).map(el=>el.value);
+        answers[qn] = vals;
+        if(vals.length) answeredCount++;
+        qaPairs.push(`${n}. ${label}: ${vals.length ? vals.join(", ") : "(nenhuma opção marcada)"}`);
+      }
+    });
+
+    // Verifica duplicidade
     const again=await sheetSearch(SHEETS.SCORES,{ cpf:CPF, code:CODE });
     if(again && again.length){
       setBox("#msg","Este formulário já foi enviado anteriormente. Voltando ao portal…","ok");
       setTimeout(goPortalWithToken,1000); return;
     }
 
-    // Monta categoria (string única)
-    const categoria = qaPairs.join(" | ");
+    // Cria string consolidada com todas perguntas e respostas
+    const questions = qaPairs.join(" | ");
     const durationSec = Math.round((Date.now()-startAt)/1000);
 
     const row = {
@@ -491,12 +500,12 @@ $("#form").addEventListener("submit", async (e)=>{
       code:CODE,
       source:"paciente",
       submitted_at:new Date().toISOString(),
-      total: answeredCount,            // qtd de respostas preenchidas
-      categoria,                       // todas as perguntas + respostas
-      metrics: JSON.stringify({ questions: QUESTIONS, answers, answeredCount, duration_sec: durationSec })
+      total: answeredCount,
+      questions, // <- todas as perguntas e respostas
+      metrics: JSON.stringify({ answers, answeredCount, duration_sec: durationSec })
     };
-    await sheetCreate(SHEETS.SCORES,row);
 
+    await sheetCreate(SHEETS.SCORES,row);
     await sheetPatchBy(SHEETS.PATIENTS,"cpf",patient.cpf,{ [`${CODE}_FEITO`]:"sim", [`${CODE}_FEITO_AT`]:new Date().toISOString() });
 
     clearAutosave();
@@ -509,6 +518,7 @@ $("#form").addEventListener("submit", async (e)=>{
     sending=false; btn.disabled=false; btn.textContent=originalText;
   }
 });
+
 </script>
 </body>
 </html>
