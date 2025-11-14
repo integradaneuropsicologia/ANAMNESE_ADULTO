@@ -5,48 +5,174 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Anamnese – Versão Adulta</title>
 <style>
-  :root{--bg:#0f172a;--card:#111827;--line:#1f2937;--text:#e5e7eb;--muted:#94a3b8;--pri:#4f46e5;--ok:#22c55e;--err:#ef4444}
+  :root{
+    --bg:#0f172a;
+    --card:#111827;
+    --card-soft:#0b1220;
+    --field:#0a0f1c;
+    --line:#1f2937;
+    --text:#e5e7eb;
+    --muted:#94a3b8;
+    --pri:#4f46e5;
+    --ok:#22c55e;
+    --err:#ef4444;
+  }
+
+  /* Tema claro */
+  :root[data-theme="light"]{
+    --bg:#f3f4f6;
+    --card:#ffffff;
+    --card-soft:#f9fafb;
+    --field:#ffffff;
+    --line:#d1d5db;
+    --text:#020617;
+    --muted:#4b5563;
+    --pri:#4f46e5;
+    --ok:#16a34a;
+    --err:#dc2626;
+  }
+
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto;
+  }
   .wrap{max-width:1000px;margin:24px auto;padding:0 16px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
-  h1{margin:0 0 6px;font-size:1.35rem}
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:18px;
+  }
+
+  .head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:6px;
+  }
+
+  h1{margin:0;font-size:1.35rem}
   .muted{color:var(--muted)}
-  .grid-info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 6px}
-  @media(max-width:720px){.grid-info{grid-template-columns:1fr}}
-  .info{background:#0b1220;border:1px solid var(--line);border-radius:10px;padding:10px}
+
+  .grid-info{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin:12px 0 6px
+  }
+  @media(max-width:720px){
+    .grid-info{grid-template-columns:1fr}
+  }
+  .info{
+    background:var(--card-soft);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px
+  }
   .info b{display:block;margin-bottom:4px;color:#cbd5e1}
 
-  .q{border:1px solid var(--line);border-radius:12px;padding:12px;background:#0b1220;margin-bottom:10px}
+  .q{
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px;
+    background:var(--card-soft);
+    margin-bottom:10px
+  }
   .q h3{margin:0 0 8px;font-size:1rem}
-  textarea{width:100%;min-height:80px;resize:vertical;border-radius:10px;border:1px solid var(--line);background:#0a0f1c;color:var(--text);padding:10px}
-  .hint{font-size:.9rem;color:#9fb2cc;margin-bottom:8px}
-  .opts{display:flex;flex-wrap:wrap;gap:10px}
-  label.opt{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer}
-  .opt input[type="radio"]{accent-color:var(--pri)}
-  label.opt:has(input[type="radio"]:checked){ background:var(--pri); border-color:var(--pri); color:#fff; }
-  label.opt:has(input[type="radio"]:checked) span{ color:#fff; font-weight:600; }
 
-  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--pri);border:none;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer}
+  textarea{
+    width:100%;
+    min-height:80px;
+    resize:vertical;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:var(--field);
+    color:var(--text);
+    padding:10px
+  }
+  .hint{font-size:.9rem;color:#9fb2cc;margin-bottom:8px}
+
+  .opts{display:flex;flex-wrap:wrap;gap:10px}
+  label.opt{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 12px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    cursor:pointer
+  }
+  .opt input[type="radio"],
+  .opt input[type="checkbox"]{
+    accent-color:var(--pri)
+  }
+  label.opt:has(input[type="radio"]:checked),
+  label.opt:has(input[type="checkbox"]:checked){
+    background:var(--pri);
+    border-color:var(--pri);
+    color:#fff;
+  }
+  label.opt:has(input[type="radio"]:checked) span,
+  label.opt:has(input[type="checkbox"]:checked) span{
+    color:#fff;
+    font-weight:600;
+  }
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--pri);
+    border:none;
+    color:#fff;
+    padding:10px 14px;
+    border-radius:10px;
+    cursor:pointer
+  }
   .btn.ok{background:var(--ok)}
   .btn:disabled{opacity:.6;cursor:not-allowed}
+
+  .btn-theme{
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--muted);
+    padding:6px 10px;
+    cursor:pointer;
+    font-size:.85rem;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+
   .msg{margin:10px 0;padding:10px;border-radius:8px}
   .okbox{background:#052e1a;border:1px solid #114d2a;color:#b3f7c1}
   .errbox{background:#3b0d0d;border:1px solid #5b1919;color:#ffd0d0}
   .warnbox{background:#3a2903;border:1px solid #5c4307;color:#ffe6b0}
-  .legend{background:#0b1220;border:1px dashed var(--line);border-radius:10px;padding:10px;margin:6px 0 12px}
-  /* já existe para radio; adicione também para checkbox */
-  label.opt:has(input[type="checkbox"]:checked){
-  background:var(--pri); border-color:var(--pri); color:#fff;
-}
 
+  .legend{
+    background:var(--card-soft);
+    border:1px dashed var(--line);
+    border-radius:10px;
+    padding:10px;
+    margin:6px 0 12px
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="card">
-    <h1>Anamnese – Versão Adulta</h1>
-  
+    <div class="head">
+      <h1>Anamnese – Versão Adulta</h1>
+      <button type="button" id="toggleTheme" class="btn-theme" aria-label="Alternar tema claro/escuro">
+        <span id="themeIcon">🌙</span>
+        <span id="themeLabel">Tema</span>
+      </button>
+    </div>
 
     <!-- Dados do paciente (por token) -->
     <div id="pacInfo" class="grid-info" style="display:none;"></div>
@@ -54,7 +180,9 @@
     <form id="form" style="margin-top:14px; display:none;">
       <div id="qs"></div>
 
-      <div class="legend muted">Dica: escreva livremente; o rascunho é salvo automaticamente neste dispositivo.</div>
+      <div class="legend muted">
+        Dica: escreva livremente; o rascunho é salvo automaticamente neste dispositivo.
+      </div>
 
       <div style="margin-top:14px;display:flex;gap:8px;align-items:center">
         <button id="btnSubmit" class="btn ok" type="submit">Enviar anamnese</button>
@@ -73,6 +201,7 @@ const SHEETDB_BASE = "https://sheetdb.io/api/v1/8pmdh33s9fvy8";
 const SHEETS = { PATIENTS:"Patients", TOKENS:"LinkTokens", SCORES:"Scores_ANAMNESE_ADULTO" };
 const CODE = "ANAMNESE_ADULTO";
 const PORTAL_URL = "https://integradaneuropsicologia.github.io/formularios/";
+const THEME_KEY = "INTEGRADA_THEME";
 
 // ======== HELPERS ========
 const $ = s => document.querySelector(s);
@@ -80,28 +209,119 @@ const onlyDigits = s => (s||"").replace(/\D+/g,"");
 const qs = k => new URLSearchParams(location.search).get(k) || "";
 const AUTOSAVE_KEY = `${CODE}_${qs("token")||"no_token"}`;
 
-function setBox(id, text, kind="ok"){ const el=$(id); if(!el) return;
-  el.textContent=text; el.className="msg "+(kind==="ok"?"okbox":kind==="warn"?"warnbox":"errbox"); el.style.display="block";
+// texto 1 linha (pra não quebrar PDF)
+const sanitizeOneLine = t => (t||"").replace(/\s+/g," ").trim();
+
+function setBox(id, text, kind="ok"){
+  const el=$(id); if(!el) return;
+  el.textContent=text;
+  el.className="msg "+(kind==="ok"?"okbox":kind==="warn"?"warnbox":"errbox");
+  el.style.display="block";
 }
-function hideBox(id){ const el=$(id); if(el){ el.style.display="none"; el.textContent=""; } }
-function maskCPF(cpf){ const d=onlyDigits(cpf||""); if(d.length!==11) return cpf||""; return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9)}`; }
-function fmtDateISO(iso){ if(!iso) return ""; const [y,m,d]=iso.split("-"); return (y&&m&&d)?`${d}/${m}/${y}`:iso; }
-async function GET(url){ const r=await fetch(url); if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }
-async function POST(url, body){ const r=await fetch(url,{method:"POST",headers:{ "Content-Type":"application/json" },body:JSON.stringify(body)}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
-async function PATCH(url, body){ const r=await fetch(url,{method:"PATCH",headers:{ "Content-Type":"application/json" },body:JSON.stringify(body)}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
-async function sheetSearch(sheet, params){ const usp=new URLSearchParams(params); return GET(`${SHEETDB_BASE}/search?sheet=${encodeURIComponent(sheet)}&${usp.toString()}`); }
-async function sheetCreate(sheet, row){ return POST(`${SHEETDB_BASE}?sheet=${encodeURIComponent(sheet)}`, { data:[row] }); }
-async function sheetPatchBy(sheet, column, value, data){ return PATCH(`${SHEETDB_BASE}/${encodeURIComponent(column)}/${encodeURIComponent(value)}?sheet=${encodeURIComponent(sheet)}`, { data }); }
-function goPortalWithToken(){ const TOKEN=qs("token"); try{ const u=new URL(PORTAL_URL,location.href); u.searchParams.set("token",TOKEN); location.href=u.toString(); }catch(_){ const sep=PORTAL_URL.includes("?")?"&":"?"; location.href=PORTAL_URL+sep+"token="+encodeURIComponent(TOKEN); }}
+function hideBox(id){
+  const el=$(id);
+  if(el){ el.style.display="none"; el.textContent=""; }
+}
+function maskCPF(cpf){
+  const d=onlyDigits(cpf||"");
+  if(d.length!==11) return cpf||"";
+  return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9)}`;
+}
+function fmtDateISO(iso){
+  if(!iso) return "";
+  const [y,m,d]=iso.split("-");
+  return (y&&m&&d)?`${d}/${m}/${y}`:iso;
+}
+async function GET(url){
+  const r=await fetch(url);
+  if(!r.ok) throw new Error("HTTP "+r.status);
+  return r.json();
+}
+async function POST(url, body){
+  const r=await fetch(url,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(body)
+  });
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function PATCH(url, body){
+  const r=await fetch(url,{
+    method:"PATCH",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(body)
+  });
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sheetSearch(sheet, params){
+  const usp=new URLSearchParams(params);
+  return GET(`${SHEETDB_BASE}/search?sheet=${encodeURIComponent(sheet)}&${usp.toString()}`);
+}
+async function sheetCreate(sheet, row){
+  return POST(`${SHEETDB_BASE}?sheet=${encodeURIComponent(sheet)}`, { data:[row] });
+}
+async function sheetPatchBy(sheet, column, value, data){
+  return PATCH(`${SHEETDB_BASE}/${encodeURIComponent(column)}/${encodeURIComponent(value)}?sheet=${encodeURIComponent(sheet)}`, { data });
+}
+function goPortalWithToken(){
+  const TOKEN=qs("token");
+  try{
+    const u=new URL(PORTAL_URL,location.href);
+    u.searchParams.set("token",TOKEN);
+    location.href=u.toString();
+  }catch(_){
+    const sep=PORTAL_URL.includes("?")?"&":"?";
+    location.href=PORTAL_URL+sep+"token="+encodeURIComponent(TOKEN);
+  }
+}
+
+// ======== TEMA CLARO/ESCURO ========
+function applyTheme(theme){
+  const root = document.documentElement;
+  if(theme === "light"){
+    root.setAttribute("data-theme","light");
+  }else{
+    root.removeAttribute("data-theme"); // dark padrão
+    theme = "dark";
+  }
+  const icon = $("#themeIcon");
+  const label = $("#themeLabel");
+  if(icon){
+    icon.textContent = theme === "light" ? "☀️" : "🌙";
+  }
+  if(label){
+    label.textContent = theme === "light" ? "Claro" : "Escuro";
+  }
+}
+
+function initTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+  const theme = saved || (prefersLight ? "light" : "dark");
+  applyTheme(theme);
+}
+
+// chama imediatamente (script está no final do body)
+initTheme();
+const themeBtn = $("#toggleTheme");
+if(themeBtn){
+  themeBtn.addEventListener("click", ()=>{
+    const isLight = document.documentElement.getAttribute("data-theme")==="light";
+    const next = isLight ? "dark" : "light";
+    localStorage.setItem(THEME_KEY, next);
+    applyTheme(next);
+  });
+}
 
 // ======== PERGUNTAS ========
 // Escalas padrão
-const FREQ5   = ["Nunca","Raramente","Às vezes","Frequentemente","Quase sempre", "Nãi sei/Não se aplica"];
-const SEVER4  = ["Não","Leve","Moderada","Grave", "Nãi sei/Não se aplica"];
-const YESNO   = ["Sim","Não", "Nãi sei/Não se aplica"];
-const YNP     = ["Sim","Não", "Nãi sei/Não se aplica"];
+const FREQ5   = ["Nunca","Raramente","Às vezes","Frequentemente","Quase sempre","Nãi sei/Não se aplica"];
+const SEVER4  = ["Não","Leve","Moderada","Grave","Nãi sei/Não se aplica"];
+const YESNO   = ["Sim","Não","Nãi sei/Não se aplica"];
+const YNP     = ["Sim","Não","Nãi sei/Não se aplica"];
 
-// Perguntas
 const QUESTIONS = [
   // ——— CONTEXTO ———
 
@@ -274,6 +494,8 @@ const QUESTIONS = [
   { type: "checkbox", section: "Uso de telas & substâncias", text: "Uso excessivo de telas (prejudica sono/estudo/convivência)", options: FREQ5 },
   { type: "checkbox", section: "Uso de telas & substâncias", text: "Uso de substâncias com prejuízo", options: ["Não","Álcool","Cannabis","Estimulantes","Sedativos/ansiolíticos","Outras"] },
 ];
+
+
 const N = QUESTIONS.length;
 
 // ======== RENDER ========
@@ -287,13 +509,11 @@ function renderQuestions(){
     wrap.className = "q";
 
     if (typeof q === "string") {
-      // textarea (como antes)
       wrap.innerHTML = `
         <h3 id="lbl${qn}">${n}. ${q}</h3>
         <textarea name="q${qn}" id="q${qn}" placeholder="Escreva aqui..."></textarea>
       `;
     } else if (q.type === "checkbox") {
-      // grupo de checkboxes
       const opts = q.options || [];
       let html = `<h3 id="lbl${qn}">${n}. ${q.text}</h3><div class="opts">`;
       opts.forEach((opt, i)=>{
@@ -310,15 +530,18 @@ function renderQuestions(){
     host.appendChild(wrap);
   });
 
-  // autosize + progresso
   host.addEventListener("input", e=>{
     if(e.target.tagName==="TEXTAREA"){
       e.target.style.height="auto";
       e.target.style.height=(e.target.scrollHeight+2)+"px";
     }
-    updateProg(); autosaveAnswers();
+    updateProg();
+    autosaveAnswers();
   });
-  host.addEventListener("change", ()=>{ updateProg(); autosaveAnswers(); });
+  host.addEventListener("change", ()=>{
+    updateProg();
+    autosaveAnswers();
+  });
 
   updateProg();
 }
@@ -338,33 +561,35 @@ function updateProg(){
   $("#progress").textContent = `${filled}/${N} respondidas`;
 }
 
-
 // ======== AUTOSAVE ========
 function autosaveAnswers(){
   const answers = {}, qaPairs = [];
-let answeredCount = 0;
+  let answeredCount = 0;
 
-QUESTIONS.forEach((q, idx)=>{
-  const n = idx+1;
-  const qn = `q${String(n).padStart(2,"0")}`;
-  const label = QUESTIONS[idx].text || QUESTIONS[idx]; // string ou objeto
+  QUESTIONS.forEach((q, idx)=>{
+    const n = idx+1;
+    const qn = `q${String(n).padStart(2,"0")}`;
+    const label = QUESTIONS[idx].text || QUESTIONS[idx];
 
-  if (typeof q === "string") {
-    const el = $("#"+qn);
-    const val = (el?.value||"").trim();
-    answers[qn] = val;
-    if(val) answeredCount++;
-    qaPairs.push(`${n}. ${label}: ${val ? val.replace(/\s+/g," ").trim() : "(sem resposta)"}`);
-  } else if (q.type === "checkbox") {
-    const vals = Array.from(document.querySelectorAll(`input[name="${qn}"]:checked`)).map(el=>el.value);
-    answers[qn] = vals; // array
-    if(vals.length) answeredCount++;
-    qaPairs.push(`${n}. ${label}: ${vals.length ? vals.join(", ") : "(nenhuma opção marcada)"}`);
-  }
-});
+    if (typeof q === "string") {
+      const el = $("#"+qn);
+      const val = (el?.value||"").trim();
+      answers[qn] = val;
+      const clean = sanitizeOneLine(val);
+      if(clean) answeredCount++;
+      qaPairs.push(`${n}. ${label}: ${clean || "(sem resposta)"}`);
+    } else if (q.type === "checkbox") {
+      const vals = Array.from(document.querySelectorAll(`input[name="${qn}"]:checked`)).map(el=>el.value);
+      answers[qn] = vals;
+      const cleanVals = vals.map(v=>sanitizeOneLine(v));
+      if(cleanVals.length) answeredCount++;
+      qaPairs.push(`${n}. ${label}: ${cleanVals.length ? cleanVals.join(", ") : "(nenhuma opção marcada)"}`);
+    }
+  });
 
-const categoria = qaPairs.join(" | "); // <- vai completo pra sua coluna "categoria"
-
+  // string consolidada (mesmo padrão do envio, mas só para debug local)
+  const categoria = qaPairs.join(" | ");
+  // salva só answers no storage (suficiente pro rascunho)
   localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ code: CODE, token: qs("token"), answers }));
 }
 
@@ -375,15 +600,17 @@ function restoreAutosave(){
 
     Object.entries(answers).forEach(([key,val])=>{
       if(Array.isArray(val)){
-        // checkbox
         val.forEach(v=>{
           const el = document.querySelector(`input[name="${key}"][value="${v}"]`);
           if(el) el.checked = true;
         });
       }else{
-        // textarea
         const el = $("#"+key);
-        if(el){ el.value = val; el.style.height="auto"; el.style.height=(el.scrollHeight+2)+"px"; }
+        if(el){
+          el.value = val;
+          el.style.height="auto";
+          el.style.height=(el.scrollHeight+2)+"px";
+        }
       }
     });
     updateProg();
@@ -416,7 +643,10 @@ let startAt = Date.now();
     patient=prows[0];
 
     const allowed=String(patient[CODE]||"").toLowerCase()==="sim";
-    if(!allowed){ setBox("#alert","Este formulário não está liberado para você. Entre em contato com o consultório.","err"); return; }
+    if(!allowed){
+      setBox("#alert","Este formulário não está liberado para você. Entre em contato com o consultório.","err");
+      return;
+    }
 
     const flagDone=String(patient[`${CODE}_FEITO`]||"").toLowerCase()==="sim";
     const already=await sheetSearch(SHEETS.SCORES,{ cpf:CPF, code:CODE });
@@ -441,7 +671,13 @@ let startAt = Date.now();
 
 function renderPatientInfo(){
   const g=$("#pacInfo"); g.innerHTML="";
-  const info=[["Nome",patient.nome||"-"],["CPF",maskCPF(patient.cpf)],["Nascimento",fmtDateISO(patient.data_nascimento)],["E-mail",patient.email||"-"],["WhatsApp",patient.whatsapp||"-"]];
+  const info=[
+    ["Nome",patient.nome||"-"],
+    ["CPF",maskCPF(patient.cpf)],
+    ["Nascimento",fmtDateISO(patient.data_nascimento)],
+    ["E-mail",patient.email||"-"],
+    ["WhatsApp",patient.whatsapp||"-"]
+  ];
   for(const [k,v] of info){
     const d=document.createElement("div"); d.className="info";
     d.innerHTML=`<b>${k}</b><div>${v||"-"}</div>`;
@@ -459,58 +695,89 @@ $("#form").addEventListener("submit", async (e)=>{
   try{
     if(!patient) throw new Error("Sessão inválida. Recarregue o link.");
 
-    const answers = {};
-    const qaPairs = [];
-    let answeredCount = 0;
+ const answers = {};
+const questionsObj = {};
+let answeredCount = 0;
 
-    QUESTIONS.forEach((q, idx)=>{
-      const n = idx + 1;
-      const qn = `q${String(n).padStart(2,"0")}`;
-      const label = q.text || q; // pode ser string ou objeto
+QUESTIONS.forEach((q, idx)=>{
+  const n = idx + 1;
+  const key = String(n).padStart(2,"0");   // "01","02","03"...
+  const qn = `q${key}`;
+  const stem = (typeof q === "string") ? q : q.text;
 
-      if (typeof q === "string") {
-        const el = $("#"+qn);
-        const val = (el?.value || "").trim();
-        answers[qn] = val;
-        if(val) answeredCount++;
-        qaPairs.push(`${n}. ${label}: ${val || "(sem resposta)"}`);
-      } else if (q.type === "checkbox") {
-        const vals = Array.from(document.querySelectorAll(`input[name="${qn}"]:checked`)).map(el=>el.value);
-        answers[qn] = vals;
-        if(vals.length) answeredCount++;
-        qaPairs.push(`${n}. ${label}: ${vals.length ? vals.join(", ") : "(nenhuma opção marcada)"}`);
-      }
-    });
+  if (typeof q === "string") {
+    // PERGUNTA ABERTA (textarea)
+    const el   = document.getElementById(qn);
+    const raw  = (el?.value || "");
+    const clean = sanitizeOneLine(raw);
 
-    // Verifica duplicidade
-    const again=await sheetSearch(SHEETS.SCORES,{ cpf:CPF, code:CODE });
-    if(again && again.length){
-      setBox("#msg","Este formulário já foi enviado anteriormente. Voltando ao portal…","ok");
-      setTimeout(goPortalWithToken,1000); return;
-    }
+    answers[qn] = raw;            // bruto no metrics
+    if (clean) answeredCount++;
 
-    // Cria string consolidada com todas perguntas e respostas
-    const questions = qaPairs.join(" | ");
-    const durationSec = Math.round((Date.now()-startAt)/1000);
-
-    const row = {
-      result_id:`${patient.cpf}_${CODE}_${Date.now()}`,
-      token:qs("token"),
-      cpf:patient.cpf,
-      code:CODE,
-      source:"paciente",
-      submitted_at:new Date().toISOString(),
-      total: answeredCount,
-      questions, // <- todas as perguntas e respostas
-      metrics: JSON.stringify({ answers, answeredCount, duration_sec: durationSec })
+    questionsObj[key] = {
+      stem,                       // texto da pergunta
+      value: null,                // sem escore numérico na anamnese
+      label: clean || "(sem resposta)" // resposta em texto
     };
 
-    await sheetCreate(SHEETS.SCORES,row);
-    await sheetPatchBy(SHEETS.PATIENTS,"cpf",patient.cpf,{ [`${CODE}_FEITO`]:"sim", [`${CODE}_FEITO_AT`]:new Date().toISOString() });
+  } else if (q.type === "checkbox") {
+    // MULTIPLA ESCOLHA
+    const vals = Array
+      .from(document.querySelectorAll(`input[name="${qn}"]:checked`))
+      .map(el => el.value);
 
-    clearAutosave();
-    setBox("#msg","Anamnese enviada. Retornando ao portal…","ok");
-    setTimeout(goPortalWithToken, 1300);
+    answers[qn] = vals;           // bruto no metrics
+    const cleanVals = vals.map(v => sanitizeOneLine(v));
+    const answerText = cleanVals.length
+      ? cleanVals.join(", ")
+      : "(nenhuma opção marcada)";
+
+    if (cleanVals.length) answeredCount++;
+
+    questionsObj[key] = {
+      stem,
+      label: answerText           // todas as opções marcadas em uma string
+    };
+  }
+});
+
+// Verifica duplicidade
+const again = await sheetSearch(SHEETS.SCORES,{ cpf:CPF, code:CODE });
+if(again && again.length){
+  setBox("#msg","Este formulário já foi enviado anteriormente. Voltando ao portal…","ok");
+  setTimeout(goPortalWithToken,1000);
+  return;
+}
+
+const durationSec = Math.round((Date.now()-startAt)/1000);
+
+const row = {
+  result_id:`${patient.cpf}_${CODE}_${Date.now()}`,
+  token:qs("token"),
+  cpf:patient.cpf,
+  code:CODE,
+  source:"paciente",
+  submitted_at:new Date().toISOString(),
+  total: answeredCount,
+  // AGORA: JSON IGUAL AO PADRÃO QUE VOCÊ MOSTROU
+  questions: JSON.stringify(questionsObj),
+  // métricas cruas, se você quiser usar depois
+  metrics: JSON.stringify({
+    answers,
+    answeredCount,
+    duration_sec: durationSec
+  })
+};
+
+await sheetCreate(SHEETS.SCORES,row);
+await sheetPatchBy(SHEETS.PATIENTS,"cpf",patient.cpf,{
+  [`${CODE}_FEITO`]:"sim",
+  [`${CODE}_FEITO_AT`]:new Date().toISOString()
+});
+
+clearAutosave();
+setBox("#msg","Anamnese enviada. Retornando ao portal…","ok");
+setTimeout(goPortalWithToken, 1300);
 
   }catch(err){
     console.error(err);
@@ -518,7 +785,6 @@ $("#form").addEventListener("submit", async (e)=>{
     sending=false; btn.disabled=false; btn.textContent=originalText;
   }
 });
-
 </script>
 </body>
 </html>
