@@ -696,6 +696,39 @@ function renderPatientInfo(){
   }
 }
 
+function buildQuestionsStemLabelJSON() {
+  const out = {};
+
+  for (let i = 1; i <= N; i++) {
+    const q = QUESTIONS[i - 1];
+    const key = String(i).padStart(2, "0");
+    const qn = `q${key}`;
+
+    const stem = (typeof q === "string") ? q : (q.text || `Pergunta ${i}`);
+
+    let label = "";
+
+    if (typeof q === "string" || q.type === "input") {
+      const el = document.getElementById(qn);
+      label = (el?.value || "").trim();
+
+    } else if (q.type === "radio" || q.type === "checkbox") {
+      const checked = Array.from(document.querySelectorAll(`input[name="${qn}"]:checked`))
+        .map(el => el.value);
+
+      // vira texto como no seu exemplo: "A, B, C"
+      label = checked.join(", ");
+    } else {
+      label = "";
+    }
+
+    out[key] = { stem, label };
+  }
+
+  return out;
+}
+
+
 // ======== SUBMIT ========
 let sending=false;
 $("#form").addEventListener("submit", async (e)=>{
@@ -813,22 +846,31 @@ $("#form").addEventListener("submit", async (e)=>{
     const categoria = qaPairs.join(" | ");
     const durationSec = Math.round((Date.now()-startAt)/1000);
 
-    const row = {
-      result_id: `${patient.cpf}_${CODE}_${Date.now()}`,
-      token: qs("token"),
-      cpf: patient.cpf,
-      code: CODE,
-      source: "paciente",
-      submitted_at: new Date().toISOString(),
-      total: answeredCount,
-      categoria,
-      metrics: JSON.stringify({
-        questions: QUESTIONS,
-        answers,
-        answeredCount,
-        duration_sec: durationSec
-      })
-    };
+    const questionsJson = buildQuestionsStemLabelJSON();
+
+const row = {
+  result_id: `${patient.cpf}_${CODE}_${Date.now()}`,
+  token: qs("token"),
+  cpf: patient.cpf,
+  code: CODE,
+  source: "paciente",
+  submitted_at: new Date().toISOString(),
+  total: answeredCount,
+
+  // ✅ coluna questions recebendo o JSON no formato certo
+  questions: JSON.stringify(questionsJson),
+
+  categoria,
+
+  // opcional: mantém o metrics como auditoria
+  metrics: JSON.stringify({
+    questions: QUESTIONS,
+    answers,
+    answeredCount,
+    duration_sec: durationSec
+  })
+};
+
 
     await sheetCreate(SHEETS.SCORES, row);
     await sheetPatchBy(SHEETS.PATIENTS, "cpf", patient.cpf, {
